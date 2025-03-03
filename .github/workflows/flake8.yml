@@ -3,7 +3,7 @@ name: Flake8 Linting
 on:
   pull_request:
     branches:
-      - dev  # Ensure this runs on PRs to the dev branch
+      - dev  
       - test
 
 jobs:
