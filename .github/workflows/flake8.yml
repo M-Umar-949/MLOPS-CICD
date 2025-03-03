@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - dev  # Ensure this runs on PRs to the dev branch
+      - test
 
 jobs:
   lint:
