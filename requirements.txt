@@ -1,0 +1,15 @@
+flask
+gunicorn
+flask-cors
+requests
+numpy
+pandas
+scikit-learn
+tensorflow
+torch
+transformers
+pytest
+flake8
+black
+pre-commit
+
