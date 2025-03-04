@@ -6,7 +6,6 @@ app = Flask(__name__)  # Initialize the Flask app
 
 
 
-
 # Load the trained model
 with open("iris_model.pkl", "rb") as file:
     model = pickle.load(file)
