@@ -2,16 +2,19 @@ pipeline {
     agent any
 
     triggers {
-        pollSCM('* * * * *')
+        githubPush()
     }
 
     stages {
         stage('Build') {
-            when {
-                branch 'dev'
-            }
             steps {
-                echo 'Hello, World!'
+                script {
+                    if (env.BRANCH_NAME == 'dev') {
+                        echo 'Hello, World!'
+                    } else {
+                        echo 'Skipped as the branch is not dev'
+                    }
+                }
             }
         }
     }
