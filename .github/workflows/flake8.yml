@@ -8,9 +8,11 @@ on:
 
 jobs:
   lint:
+    name: Lint with Flake8
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -23,12 +25,6 @@ jobs:
         pip install flake8
     
     - name: Run Flake8
-      id: flake8-run
       run: |
-        flake8 .
-        echo "::set-output name=status::success"
-      continue-on-error: true
-    
-    - name: Check Flake8 results
-      if: steps.flake8-run.outputs.status == 'failure'
-      run: exit 1
+        # Run Flake8 and output in GitHub Actions format
+        flake8 . --format=github
