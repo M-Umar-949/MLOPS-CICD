@@ -1,18 +1,16 @@
 pipeline {
     agent any
 
-    // Remove pollSCM, as it conflicts with GitHub webhooks
-    triggers {
-        githubPush() // This enables GitHub webhook trigger
-    }
-
     stages {
-        stage('Webhook Debug') {
+        stage('Determine Branch') {
             steps {
                 script {
-                    echo "Triggered by GitHub Webhook"
-                    echo "Branch: ${env.GIT_BRANCH}"
-                    echo "Commit: ${env.GIT_COMMIT}"
+                    // Multiple methods to try and get the branch name
+                    env.DETECTED_BRANCH = env.BRANCH_NAME ?: 
+                        env.GIT_BRANCH ?: 
+                        sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    
+                    echo "Detected Branch: ${env.DETECTED_BRANCH}"
                 }
             }
         }
@@ -20,13 +18,22 @@ pipeline {
         stage('Build') {
             when {
                 expression {
-                    // More flexible branch matching
-                    def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
-                    return branch == 'origin/dev' || branch == 'dev'
+                    return env.DETECTED_BRANCH == 'dev' || env.DETECTED_BRANCH == 'origin/dev'
                 }
             }
             steps {
-                echo 'Hello, World! This is running on the dev branch via webhook'
+                echo 'Hello, World! This is running on the dev branch'
+            }
+        }
+
+        stage('Fallback') {
+            when {
+                expression {
+                    return env.DETECTED_BRANCH != 'dev' && env.DETECTED_BRANCH != 'origin/dev'
+                }
+            }
+            steps {
+                echo "Current branch is: ${env.DETECTED_BRANCH}"
             }
         }
     }
