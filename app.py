@@ -1,11 +1,11 @@
-from flask import Flask, request, render_template
-import pickle
+from flask import Flask, request, render_template, pickle
+# import pickle
 import numpy as np
 
 app = Flask(__name__, template_folder="templates")
 
 # Load the trained model
-with open("iris_model.pkl", "rb") as file:
+with open("iris_model.pkl","rb") as file:
     model = pickle.load(file)
 
 # Map numeric predictions to flower names
