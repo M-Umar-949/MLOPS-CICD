@@ -1,11 +1,11 @@
 name: Flake8 Linting
 
 on:
+  push:
+    branches: [ dev ]
   pull_request:
-    branches:
-      - dev  
-      - test
-
+    branches: [ test, master ]
+    
 jobs:
   lint:
     runs-on: ubuntu-latest
