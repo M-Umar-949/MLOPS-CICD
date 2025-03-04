@@ -9,12 +9,10 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Flake8 Linting  # This name will appear in GitHub checks
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -26,5 +24,4 @@ jobs:
           pip install flake8
 
       - name: Run Flake8
-        run: |
-          flake8 .
+        run: flake8 .
