@@ -15,5 +15,5 @@ class TestIrisModel(unittest.TestCase):
         self.assertIn(prediction, [0, 1, 2])  # Should return a valid class
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
