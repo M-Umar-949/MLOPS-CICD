@@ -5,10 +5,11 @@ on:
     branches: [ dev ]
   pull_request:
     branches: [ test, master ]
-    
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+    name: Flake8 Linting  # This name will appear in GitHub checks
 
     steps:
       - name: Checkout repository
@@ -17,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12.0'  # Set to the version you're using
+          python-version: '3.12.0'
 
       - name: Install dependencies
         run: |
@@ -25,4 +26,5 @@ jobs:
           pip install flake8
 
       - name: Run Flake8
-        run: flake8 .
+        run: |
+          flake8 .
