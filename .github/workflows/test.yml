@@ -24,4 +24,4 @@ jobs:
           pip install numpy scikit-learn flask
 
       - name: Run Unit Tests
-        run: python -m unittest test_app.py
+        run: python -m unittest test_model.py
