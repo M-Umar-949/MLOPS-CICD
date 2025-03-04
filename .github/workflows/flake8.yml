@@ -28,5 +28,6 @@ jobs:
     
     - name: Run Flake8
       run: |
-        # Run Flake8 and output results
+        # Fail the workflow if there are any linting errors
         flake8 . --count --max-line-length=127 --statistics
+      continue-on-error: false
