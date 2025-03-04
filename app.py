@@ -5,8 +5,6 @@ import numpy as np
 app = Flask(__name__)
 
 
-
-
 # Load the trained model
 with open("iris_model.pkl", "rb") as file:
     model = pickle.load(file)
