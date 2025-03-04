@@ -1,16 +1,15 @@
 pipeline {
     agent any
 
+    triggers {
+        pollSCM('* * * * *') // Polls SCM every minute
+    }
+
     stages {
-        stage('Determine Branch') {
+        stage('Debug Branch') {
             steps {
                 script {
-                    // Multiple methods to try and get the branch name
-                    env.DETECTED_BRANCH = env.BRANCH_NAME ?: 
-                        env.GIT_BRANCH ?: 
-                        sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                    
-                    echo "Detected Branch: ${env.DETECTED_BRANCH}"
+                    echo "Current Branch Name: ${env.BRANCH_NAME}"
                 }
             }
         }
@@ -18,7 +17,7 @@ pipeline {
         stage('Build') {
             when {
                 expression {
-                    return env.DETECTED_BRANCH == 'dev' || env.DETECTED_BRANCH == 'origin/dev'
+                    return env.BRANCH_NAME == 'origin/dev'
                 }
             }
             steps {
@@ -26,14 +25,15 @@ pipeline {
             }
         }
 
-        stage('Fallback') {
+        // Optional: Add an else branch stage
+        stage('Other Branches') {
             when {
                 expression {
-                    return env.DETECTED_BRANCH != 'dev' && env.DETECTED_BRANCH != 'origin/dev'
+                    return env.BRANCH_NAME != 'dev'
                 }
             }
             steps {
-                echo "Current branch is: ${env.DETECTED_BRANCH}"
+                echo "This is running on branch: ${env.BRANCH_NAME}"
             }
         }
     }
