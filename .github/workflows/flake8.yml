@@ -23,4 +23,12 @@ jobs:
         pip install flake8
     
     - name: Run Flake8
-      run: flake8 .
+      id: flake8-run
+      run: |
+        flake8 .
+        echo "::set-output name=status::success"
+      continue-on-error: true
+    
+    - name: Check Flake8 results
+      if: steps.flake8-run.outputs.status == 'failure'
+      run: exit 1
