@@ -1,12 +1,11 @@
-flask
-gunicorn
-flask-cors
-requests
-numpy
-pandas
-scikit-learn
-pytest
-flake8
-black
-pre-commit
-
+flask==2.2.5
+gunicorn==20.1.0
+flask-cors==3.0.10
+requests==2.31.0
+numpy==1.23.5
+pandas==1.5.3
+scikit-learn==1.6.1  # Match the version used to train the model
+pytest==7.2.0
+flake8==6.0.0
+black==23.1.0
+pre-commit==3.3.2
