@@ -22,7 +22,7 @@ pipeline {
                 }
             }
             steps {
-                echo 'Hello, World! This is running on the dev'
+                echo 'Hello, World! This is running on the dev branch'
             }
         }
 
