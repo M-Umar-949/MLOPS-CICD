@@ -17,7 +17,7 @@ pipeline {
         stage('Build') {
             when {
                 expression {
-                    return env.BRANCH_NAME == 'origin/dev'
+                    return env.DETECTED_BRANCH == 'origin/dev'
                 }
             }
             steps {
