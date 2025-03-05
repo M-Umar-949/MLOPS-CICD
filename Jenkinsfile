@@ -26,7 +26,7 @@ pipeline {
                 }
             }
             steps {
-                echo 'Hello, World! This is running on the dev branch via webhook :) x2'
+                echo 'Hello, World! This is running on the dev branch via webhook  :)'
             }
         }
     }
