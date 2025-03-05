@@ -1,38 +1,33 @@
-name: Python Linting and Checks
+name: Flake8 Linting
 
 on:
   push:
-    branches: 
+    branches:
       - dev
-      - main
-      - master
   pull_request:
-    branches: 
+    branches:
       - dev
       - main
-      - master
+      - test
 
 jobs:
-  flake8-lint:
-    name: Lint with flake8
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12.0'
-      
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8
-      
-      - name: Run Flake8
-        id: flake8-lint
-        run: |
-          # Use exit-zero to set a non-zero exit code if linting fails
-          flake8 . --exit-zero --count --max-complexity=10 --max-line-length=127 --statistics
-        continue-on-error: false
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.0'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+    
+    - name: Run Flake8
+      run: |
+        # Fail the workflow if there are any linting errors
+        flake8 . --count --max-line-length=127 --statistics
+      continue-on-error: false
