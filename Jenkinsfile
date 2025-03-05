@@ -39,6 +39,7 @@ pipeline {
             steps {
                 script {
                     // Build Docker image using the Dockerfile in the project
+                    def DOCKER_TAG = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : "latest"
                     sh """
                         docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
