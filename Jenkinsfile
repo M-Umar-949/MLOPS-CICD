@@ -1,33 +1,88 @@
 pipeline {
     agent any
 
-    // Remove pollSCM, as it conflicts with GitHub webhooks
-    triggers {
-        githubPush() // This enables GitHub webhook trigger
+    environment {
+        DOCKER_IMAGE = 'mtalal12/ml-app:latest'
     }
 
     stages {
-        stage('Webhook Debug') {
+        stage('Checkout Code') {
             steps {
-                script {
-                    echo "Triggered by GitHub Webhook"
-                    echo "Branch: ${env.GIT_BRANCH}"
-                    echo "Commit: ${env.GIT_COMMIT}"
+                git branch: 'master', url: 'pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'mtalal12/ml-app:latest'
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/your-username/your-repo.git'
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+                    sh 'docker login -u your-dockerhub-username -p your-dockerhub-password'
                 }
             }
         }
 
-        stage('Build') {
-            when {
-                expression {
-                    // More flexible branch matching
-                    def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
-                    return branch == 'origin/dev' || branch == 'dev'
+        stage('Push Docker Image') {
+            steps {
+                sh 'docker push $DOCKER_IMAGE'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment successful!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
+        }
+    }
+}
+'
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
+                    sh 'docker login -u your-dockerhub-username -p your-dockerhub-password'
                 }
             }
+        }
+
+        stage('Push Docker Image') {
             steps {
-                echo 'Hello, World! This is running on the dev branch via webhook  :)'
+                sh 'docker push $DOCKER_IMAGE'
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment successful!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
         }
     }
 }
