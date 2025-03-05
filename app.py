@@ -5,8 +5,6 @@ import numpy as np
 app = Flask(__name__, template_folder="templates")
 
 
-
-
 # Load the trained model
 with open("iris_model.pkl", "rb") as file:
     model = pickle.load(file)
@@ -42,7 +40,6 @@ def predict():
         )  # Show result in UI
     except Exception as e:
         return render_template("index.html", error=str(e))  # Display error in UI
-
 
 
 if __name__ == "__main__":
