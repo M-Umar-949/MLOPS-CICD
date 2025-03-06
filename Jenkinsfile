@@ -17,12 +17,13 @@ pipeline {
         stage('Verify Branch') {
             steps {
                 script {
-                    // Modified to ensure the job only runs on pushes to dev branch
                     def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
                     echo "Current branch: ${branch}"
+                    
+                    // Only run on dev branch
                     if (!(branch == 'origin/dev' || branch == 'dev')) {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: not a push to dev branch")
+                        error("Pipeline aborted: not a push to dev branch. Current branch: ${branch}")
                     }
                 }
             }
@@ -40,7 +41,7 @@ pipeline {
                 script {
                     // Fixed DOCKER_TAG usage - use the environment variable
                     sh """
-                    docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
@@ -62,10 +63,10 @@ pipeline {
                 script {
                     // Push image with commit hash tag
                     sh """
-                    docker push ${DOCKER_REPO}:${DOCKER_TAG}
+                    sudo docker push ${DOCKER_REPO}:${DOCKER_TAG}
                     # Also tag and push as latest
-                    docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                    docker push ${DOCKER_REPO}:latest
+                    sudo docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                    sudo docker push ${DOCKER_REPO}:latest
                     """
                 }
             }
@@ -76,8 +77,8 @@ pipeline {
                 script {
                     // Remove local images to save disk space
                     sh """
-                    docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
-                    docker rmi ${DOCKER_REPO}:latest
+                    sudo docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
+                    sudo docker rmi ${DOCKER_REPO}:latest
                     """
                 }
             }
@@ -93,7 +94,7 @@ pipeline {
         }
         always {
             // Logout from Docker Hub
-            sh 'docker logout'
+            sh 'sudo docker logout'
             // Clean up workspace
             cleanWs()
         }
