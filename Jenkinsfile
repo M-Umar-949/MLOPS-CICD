@@ -78,7 +78,7 @@ pipeline {
     
     post {
         success {
-            echo 'Docker image successfully built and pushed to Docker Hub!'
+            echo 'Docker image successfully built and pushed to Docker Hub !'
         }
         failure {
             echo 'Docker build or push failed  :('
