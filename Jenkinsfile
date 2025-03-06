@@ -7,6 +7,8 @@ pipeline {
         DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
         // Define the full path to Docker executable
         DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
+        PATH = "/Applications/Docker.app/Contents/Resources/bin:${PATH}"
+
     }
         
     triggers {
