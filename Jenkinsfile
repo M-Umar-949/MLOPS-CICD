@@ -59,6 +59,7 @@ pipeline {
                         sudo ${DOCKER_PATH} push ${DOCKER_REPO}:latest
                         """
                     }
+                    
                 }
             }
         }
