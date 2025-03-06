@@ -39,7 +39,7 @@ pipeline {
                 script {
                     // Build Docker image
                     sh """
-                    /Applications/Docker.app/Contents/Resources/bin/docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo /Applications/Docker.app/Contents/Resources/bin/docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
