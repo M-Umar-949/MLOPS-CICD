@@ -1,13 +1,12 @@
 pipeline {
     agent any
-    
     environment {
         // Define Docker Hub credentials ID from Jenkins credentials
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         // Define your Docker Hub repository (username/repo-name)
         DOCKER_REPO = 'umar949/mlops'
         // Generate a tag based on the commit hash or build number
-        DOCKER_TAG = "${env.GIT_COMMIT.take(7)}"
+        DOCKER_TAG = "${env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : 'latest'}"
     }
     
     triggers {
@@ -18,11 +17,12 @@ pipeline {
         stage('Verify Branch') {
             steps {
                 script {
-                    // Ensure the job only runs on merge to main
+                    // Modified to ensure the job only runs on pushes to dev branch
                     def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
-                    if (!(branch == 'origin/main' || branch == 'main')) {
+                    echo "Current branch: ${branch}"
+                    if (!(branch == 'origin/dev' || branch == 'dev')) {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: not merging to main branch :(")
+                        error("Pipeline aborted: not a push to dev branch")
                     }
                 }
             }
@@ -38,10 +38,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image using the Dockerfile in the project
-                    def DOCKER_TAG = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : "latest"
+                    // Fixed DOCKER_TAG usage - use the environment variable
                     sh """
-                        docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
@@ -52,7 +51,7 @@ pipeline {
                 script {
                     // Login to Docker Hub using Jenkins credentials
                     sh """
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
                     """
                 }
             }
@@ -63,11 +62,10 @@ pipeline {
                 script {
                     // Push image with commit hash tag
                     sh """
-                        docker push ${DOCKER_REPO}:${DOCKER_TAG}
-                        
-                        # Also tag and push as latest
-                        docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                        docker push ${DOCKER_REPO}:latest
+                    docker push ${DOCKER_REPO}:${DOCKER_TAG}
+                    # Also tag and push as latest
+                    docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                    docker push ${DOCKER_REPO}:latest
                     """
                 }
             }
@@ -78,8 +76,8 @@ pipeline {
                 script {
                     // Remove local images to save disk space
                     sh """
-                        docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
-                        docker rmi ${DOCKER_REPO}:latest
+                    docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
+                    docker rmi ${DOCKER_REPO}:latest
                     """
                 }
             }
@@ -96,7 +94,6 @@ pipeline {
         always {
             // Logout from Docker Hub
             sh 'docker logout'
-            
             // Clean up workspace
             cleanWs()
         }
