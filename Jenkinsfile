@@ -22,7 +22,7 @@ pipeline {
                     def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
                     if (!(branch == 'origin/main' || branch == 'main')) {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: not merging to main branch ")
+                        error("Pipeline aborted: not merging to main branch :(")
                     }
                 }
             }
