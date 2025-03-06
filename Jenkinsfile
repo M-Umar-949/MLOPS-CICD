@@ -5,8 +5,10 @@ pipeline {
         DOCKER_REPO = 'umar949/mlops'
         // Generate a tag based on the commit hash or default to 'latest'
         DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
+        // Define the full path to Docker executable
+        DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
     }
-    
+        
     triggers {
         githubPush() // GitHub webhook trigger
     }
@@ -49,11 +51,12 @@ pipeline {
             steps {
                 script {
                     // Push image with commit hash tag and latest tag
-                    withDockerRegistry([credentialsId: 'dockerhub-credentials']) {
+                    withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_HUB_CREDS')]) {
                         sh """
-                        sudo /Applications/Docker.app/Contents/Resources/bin/docker push ${DOCKER_REPO}:${DOCKER_TAG}
-                        sudo /Applications/Docker.app/Contents/Resources/bin/docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                        sudo /Applications/Docker.app/Contents/Resources/bin/docker push ${DOCKER_REPO}:latest
+                        ${DOCKER_PATH} login -u \${DOCKER_HUB_CREDS.split(':')[0]} -p \${DOCKER_HUB_CREDS.split(':')[1]}
+                        ${DOCKER_PATH} push ${DOCKER_REPO}:${DOCKER_TAG}
+                        ${DOCKER_PATH} tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                        ${DOCKER_PATH} push ${DOCKER_REPO}:latest
                         """
                     }
                 }
