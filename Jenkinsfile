@@ -41,7 +41,7 @@ pipeline {
                 script {
                     // Fixed DOCKER_TAG usage - use the environment variable
                     sh """
-                    docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
