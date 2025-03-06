@@ -41,7 +41,7 @@ pipeline {
                 script {
                     // Build Docker image
                     sh """
-                    sudo /Applications/Docker.app/Contents/Resources/bin/docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo ${DOCKER_PATH} build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
@@ -51,12 +51,12 @@ pipeline {
             steps {
                 script {
                     // Push image with commit hash tag and latest tag
-                    withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_HUB_CREDS')]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
-                        ${DOCKER_PATH} login -u \${DOCKER_HUB_CREDS.split(':')[0]} -p \${DOCKER_HUB_CREDS.split(':')[1]}
-                        ${DOCKER_PATH} push ${DOCKER_REPO}:${DOCKER_TAG}
-                        ${DOCKER_PATH} tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                        ${DOCKER_PATH} push ${DOCKER_REPO}:latest
+                        echo "$DOCKER_PASSWORD" | ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin
+                        sudo ${DOCKER_PATH} push ${DOCKER_REPO}:${DOCKER_TAG}
+                        sudo ${DOCKER_PATH} tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                        sudo ${DOCKER_PATH} push ${DOCKER_REPO}:latest
                         """
                     }
                 }
@@ -68,8 +68,8 @@ pipeline {
                 script {
                     // Remove local images to save disk space
                     sh """
-                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
-                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:latest || true
+                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
+                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:latest || true
                     """
                 }
             }
