@@ -41,7 +41,7 @@ pipeline {
                 script {
                     // Build Docker image
                     sh """
-                    sudo ${DOCKER_PATH} build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo /Applications/Docker.app/Contents/Resources/bin/docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
@@ -53,7 +53,7 @@ pipeline {
                     // Push image with commit hash tag and latest tag
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
-                        echo "$DOCKER_PASSWORD" | ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin
+                        ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin <<< "$DOCKER_PASSWORD"
                         sudo ${DOCKER_PATH} push ${DOCKER_REPO}:${DOCKER_TAG}
                         sudo ${DOCKER_PATH} tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
                         sudo ${DOCKER_PATH} push ${DOCKER_REPO}:latest
@@ -68,8 +68,8 @@ pipeline {
                 script {
                     // Remove local images to save disk space
                     sh """
-                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
-                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:latest || true
+                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
+                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:latest || true
                     """
                 }
             }
