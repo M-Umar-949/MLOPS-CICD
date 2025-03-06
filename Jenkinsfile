@@ -41,7 +41,7 @@ pipeline {
                 script {
                     // Fixed DOCKER_TAG usage - use the environment variable
                     sh """
-                    sudo docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
@@ -63,10 +63,10 @@ pipeline {
                 script {
                     // Push image with commit hash tag
                     sh """
-                    sudo docker push ${DOCKER_REPO}:${DOCKER_TAG}
+                    docker push ${DOCKER_REPO}:${DOCKER_TAG}
                     # Also tag and push as latest
-                    sudo docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                    sudo docker push ${DOCKER_REPO}:latest
+                    docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                    docker push ${DOCKER_REPO}:latest
                     """
                 }
             }
@@ -77,8 +77,8 @@ pipeline {
                 script {
                     // Remove local images to save disk space
                     sh """
-                    sudo docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
-                    sudo docker rmi ${DOCKER_REPO}:latest
+                    docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
+                    docker rmi ${DOCKER_REPO}:latest
                     """
                 }
             }
@@ -94,7 +94,7 @@ pipeline {
         }
         always {
             // Logout from Docker Hub
-            sh 'sudo docker logout'
+            sh 'docker logout'
             // Clean up workspace
             cleanWs()
         }
