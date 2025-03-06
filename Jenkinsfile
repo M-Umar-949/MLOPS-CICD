@@ -8,7 +8,6 @@ pipeline {
         // Define the full path to Docker executable
         DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
         PATH = "/Applications/Docker.app/Contents/Resources/bin:${PATH}"
-
     }
         
     triggers {
@@ -81,9 +80,25 @@ pipeline {
     post {
         success {
             echo 'Docker image successfully built and pushed to Docker Hub!'
+            emailext (
+                subject: "Pipeline Success: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                The pipeline ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} completed successfully.
+                View the build details: ${env.BUILD_URL}
+                """,
+                to: 'umarrajput930@gmail.com'
+            )
         }
         failure {
             echo 'Docker build or push failed  :('
+            emailext (
+                subject: "Pipeline Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                The pipeline ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} failed.
+                View the build details: ${env.BUILD_URL}
+                """,
+                to: 'umarrajput930@gmail.com'
+            )
         }
         always {
             // Clean up workspace
