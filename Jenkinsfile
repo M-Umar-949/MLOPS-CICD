@@ -51,9 +51,9 @@ pipeline {
                     // Push image with commit hash tag and latest tag
                     withDockerRegistry([credentialsId: 'dockerhub-credentials']) {
                         sh """
-                        docker push ${DOCKER_REPO}:${DOCKER_TAG}
-                        docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                        docker push ${DOCKER_REPO}:latest
+                        sudo /Applications/Docker.app/Contents/Resources/bin/docker push ${DOCKER_REPO}:${DOCKER_TAG}
+                        sudo /Applications/Docker.app/Contents/Resources/bin/docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                        sudo /Applications/Docker.app/Contents/Resources/bin/docker push ${DOCKER_REPO}:latest
                         """
                     }
                 }
@@ -65,8 +65,8 @@ pipeline {
                 script {
                     // Remove local images to save disk space
                     sh """
-                    docker rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
-                    docker rmi ${DOCKER_REPO}:latest || true
+                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
+                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:latest || true
                     """
                 }
             }
