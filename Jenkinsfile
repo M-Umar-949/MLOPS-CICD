@@ -81,7 +81,7 @@ pipeline {
             echo 'Docker image successfully built and pushed to Docker Hub!'
         }
         failure {
-            echo 'Docker build or push failed'
+            echo 'Docker build or push failed:('
         }
         always {
             // Clean up workspace
