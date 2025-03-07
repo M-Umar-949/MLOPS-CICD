@@ -1,103 +1,105 @@
 pipeline {
     agent any
-    
+
     environment {
-        // Define Docker Hub credentials ID from Jenkins credentials
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        // Define your Docker Hub repository (username/repo-name)
         DOCKER_REPO = 'umar949/mlops'
-        // Generate a tag based on the commit hash or build number
-        DOCKER_TAG = "${env.GIT_COMMIT.take(7)}"
+        DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
+        DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
+        PATH = "/Applications/Docker.app/Contents/Resources/bin:${PATH}"
     }
-    
-    triggers {
-        githubPush() // GitHub webhook trigger
-    }
-    
+
     stages {
-        stage('Verify Branch') {
+        stage('Verify Merge to Main') {
+            when {
+                allOf {
+                    branch 'main'
+                    changeset "**"  // Ensures pipeline triggers on changes
+                }
+            }
             steps {
                 script {
-                    // Ensure the job only runs on merge to main
-                    def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
-                    if (!(branch == 'origin/main' || branch == 'main')) {
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.GIT_BRANCH
+                    def targetBranch = env.CHANGE_TARGET ?: 'main'
+
+                    echo "Source Branch: ${sourceBranch}"
+                    echo "Target Branch: ${targetBranch}"
+
+                    if (sourceBranch != 'test' || targetBranch != 'main') {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: not merging to main branch :(")
+                        error("Pipeline aborted: Only merges from 'test' to 'main' are allowed.")
+                        
                     }
                 }
             }
         }
-        
+
         stage('Checkout Code') {
             steps {
-                // Checkout the code from the repository
                 checkout scm
             }
         }
-        
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image using the Dockerfile in the project
-                    def DOCKER_TAG = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : "latest"
                     sh """
-                        docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo ${DOCKER_PATH} build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
         }
-        
-        stage('Login to Docker Hub') {
-            steps {
-                script {
-                    // Login to Docker Hub using Jenkins credentials
-                    sh """
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                    """
-                }
-            }
-        }
-        
+
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Push image with commit hash tag
-                    sh """
-                        docker push ${DOCKER_REPO}:${DOCKER_TAG}
-                        
-                        # Also tag and push as latest
-                        docker tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
-                        docker push ${DOCKER_REPO}:latest
-                    """
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh """
+                        echo "$DOCKER_PASSWORD" | ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin
+                        sudo ${DOCKER_PATH} push ${DOCKER_REPO}:${DOCKER_TAG}
+                        sudo ${DOCKER_PATH} tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
+                        sudo ${DOCKER_PATH} push ${DOCKER_REPO}:latest
+                        """
+                    }
                 }
             }
         }
-        
+
         stage('Cleanup') {
             steps {
                 script {
-                    // Remove local images to save disk space
                     sh """
-                        docker rmi ${DOCKER_REPO}:${DOCKER_TAG}
-                        docker rmi ${DOCKER_REPO}:latest
+                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
+                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:latest || true
                     """
                 }
             }
         }
     }
-    
+
     post {
         success {
             echo 'Docker image successfully built and pushed to Docker Hub!'
+            emailext (
+                subject: "Pipeline Success: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                The pipeline ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} completed successfully.
+                View the build details: ${env.BUILD_URL}
+                """,
+                to: 'umarrajput930@gmail.com'
+            )
         }
         failure {
-            echo 'Docker build or push failed'
+            echo 'Docker build or push failed  :('
+            emailext (
+                subject: "Pipeline Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                The pipeline ${env.JOB_NAME} - Build #${env.BUILD_NUMBER} failed.
+                View the build details: ${env.BUILD_URL}
+                """,
+                to: 'umarrajput930@gmail.com'
+            )
         }
         always {
-            // Logout from Docker Hub
-            sh 'docker logout'
-            
-            // Clean up workspace
             cleanWs()
         }
     }
