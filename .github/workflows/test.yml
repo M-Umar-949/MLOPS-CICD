@@ -1,4 +1,4 @@
-name: Flake8 Linting
+name: Flake8 Linting and testing on pull_req 
 
 on:
   pull_request:

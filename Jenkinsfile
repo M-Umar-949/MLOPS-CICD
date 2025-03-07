@@ -1,67 +1,59 @@
 pipeline {
     agent any
+
     environment {
-        // Define the Docker Hub repository (username/repo-name)
         DOCKER_REPO = 'umar949/mlops'
-        // Generate a tag based on the commit hash or default to 'latest'
         DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
-        // Define the full path to Docker executable
         DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
         PATH = "/Applications/Docker.app/Contents/Resources/bin:${PATH}"
     }
-        
-    triggers {
 
-        pullRequest(
-            events: ['opened', 'synchronize', 'reopened', 'closed'],
-            branches: ['main'])
-         }
-    
     stages {
         stage('Verify Merge to Main') {
+            when {
+                allOf {
+                    branch 'main'
+                    changeset "**"  // Ensures pipeline triggers on changes
+                }
+            }
             steps {
                 script {
-                    // Get the current branch and the target branch of the pull request
-                    def currentBranch = env.GIT_BRANCH ?: env.BRANCH_NAME
-                    def targetBranch = env.CHANGE_TARGET ?: 'main' // Default to 'main' if CHANGE_TARGET is not set
+                    def sourceBranch = env.CHANGE_BRANCH ?: env.GIT_BRANCH
+                    def targetBranch = env.CHANGE_TARGET ?: 'main'
 
-                    echo "Current branch: ${currentBranch}"
-                    echo "Target branch: ${targetBranch}"
+                    echo "Source Branch: ${sourceBranch}"
+                    echo "Target Branch: ${targetBranch}"
 
-                    // Check if the target branch is 'main' and the source branch is 'test'
-                    if (!(targetBranch == 'main' && currentBranch == 'test')) {
+                    if (sourceBranch != 'test' || targetBranch != 'main') {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: not a merge from 'test' to 'main'. Current branch: ${currentBranch}, Target branch: ${targetBranch}")
+                        error("Pipeline aborted: Only merges from 'test' to 'main' are allowed.")
                     }
                 }
             }
         }
-        
+
         stage('Checkout Code') {
             steps {
-                // Check out the code from the repository
                 checkout scm
             }
         }
-        
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using the Dockerfile in the project
                     sh """
                     sudo ${DOCKER_PATH} build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
         }
-        
+
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Push the Docker image with the commit hash tag and latest tag
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
-                        ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin <<< "$DOCKER_PASSWORD"
+                        echo "$DOCKER_PASSWORD" | ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin
                         sudo ${DOCKER_PATH} push ${DOCKER_REPO}:${DOCKER_TAG}
                         sudo ${DOCKER_PATH} tag ${DOCKER_REPO}:${DOCKER_TAG} ${DOCKER_REPO}:latest
                         sudo ${DOCKER_PATH} push ${DOCKER_REPO}:latest
@@ -70,11 +62,10 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Cleanup') {
             steps {
                 script {
-                    // Remove local Docker images to save disk space
                     sh """
                     sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
                     sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:latest || true
@@ -83,7 +74,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         success {
             echo 'Docker image successfully built and pushed to Docker Hub!'
@@ -108,7 +99,6 @@ pipeline {
             )
         }
         always {
-            // Clean up the workspace
             cleanWs()
         }
     }
