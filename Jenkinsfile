@@ -68,7 +68,6 @@ pipeline {
                 }
             }
         }
-        
         stage('Checkout Code') {
             steps {
                 // Checkout the code from the repository
