@@ -14,8 +14,7 @@ pipeline {
 
         pullRequest(
             events: ['opened', 'synchronize', 'reopened', 'closed'],
-            branches: ['main']
-         )
+            branches: ['main'])
          }
     
     stages {
