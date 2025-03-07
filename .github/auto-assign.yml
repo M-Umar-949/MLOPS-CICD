@@ -14,7 +14,7 @@ jobs:
           BASE_BRANCH="${{ github.base_ref }}"
           HEAD_BRANCH="${{ github.head_ref }}"
           
-          if [[ "$BASE_BRANCH" == "test" && "$HEAD_BRANCH" == "dev" ]] || [[ "$BASE_BRANCH" == "master" && "$HEAD_BRANCH" == "test" ]]; then
+          if [[ "$BASE_BRANCH" == "test" && "$HEAD_BRANCH" == "dev" ]] || [[ "$BASE_BRANCH" == "main" && "$HEAD_BRANCH" == "test" ]]; then
             echo "::set-output name=should_assign::true"
           else
             echo "::set-output name=should_assign::false"
