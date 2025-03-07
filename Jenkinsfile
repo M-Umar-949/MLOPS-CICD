@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         // Define your Docker Hub repository (username/repo-name)
-        DOCKER_REPO = 'umar949/mlops'
+        DOCKER_REPO = 'umar949/mlopsCICD'
         // Generate a tag based on the commit hash or default to 'latest'
         DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
         // Define the full path to Docker executable
