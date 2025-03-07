@@ -32,15 +32,6 @@ pipeline {
                     def currentCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     echo "Current commit: ${currentCommit}"
                     
-                    // Check if this commit is new to this build
-                    def changedFiles = sh(script: 'git diff-tree --no-commit-id --name-only -r HEAD', returnStdout: true).trim()
-                    echo "Changed files in this commit: ${changedFiles}"
-                    
-                    if (changedFiles.isEmpty()) {
-                        currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: No files changed in this commit")
-                    }
-                    
                     // Let's check if this is a merge commit
                     echo "Examining commit to verify it's a merge from test branch..."
                     
@@ -77,6 +68,19 @@ pipeline {
                         error("Pipeline aborted: This is a merge to main, but not from the test branch")
                     }
                     
+                    // For merge commits, check what files changed between the source branch and destination branch
+                    def changedFiles = sh(
+                        script: "git diff --name-only ${parentCommits[0]}...${parentCommits[1]}",
+                        returnStdout: true
+                    ).trim()
+                    
+                    echo "Files changed in this merge: ${changedFiles}"
+                    
+                    if (changedFiles.isEmpty()) {
+                        currentBuild.result = 'ABORTED'
+                        error("Pipeline aborted: No files changed in this merge")
+                    }
+                    
                     // Verify this is a recent merge by checking the timestamp
                     def mergeTimestamp = sh(
                         script: "git show -s --format=%ct ${currentCommit}",
@@ -88,11 +92,11 @@ pipeline {
                     
                     echo "Merge age: ${ageInMinutes} minutes"
                     
-                    // If the merge is older than a reasonable threshold (e.g., 10 minutes),
-                    // it might not be related to the current push
-                    if (ageInMinutes > 10) {
+                    // If the merge is older than a reasonable threshold (e.g., 60 minutes),
+                    // it might not be related to the current CI run
+                    if (ageInMinutes > 60) {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: The merge commit is too old (${ageInMinutes} minutes). This might be a push to a different branch.")
+                        error("Pipeline aborted: The merge commit is too old (${ageInMinutes} minutes). This might be a build triggered for another reason.")
                     }
                     
                     echo "✅ Verified: This is a recent merge from test branch to main branch - proceeding with build"
@@ -189,7 +193,7 @@ pipeline {
                 """,
                 to: 'umarrajput930@gmail.com'
             )
-            
+
         }
         always {
             // Always clean up workspace regardless of success/failure
