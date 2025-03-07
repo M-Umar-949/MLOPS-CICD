@@ -10,7 +10,8 @@ pipeline {
     
     triggers {
         // This will check the repository for changes every minute
-        pollSCM('* * * * *')
+        githubPush()
+        // pollSCM('* * * * *')
     }
     
     stages {
