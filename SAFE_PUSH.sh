@@ -17,7 +17,7 @@ SLEEP_INTERVAL=10
 
 # Ensure GITHUB_TOKEN is set
 if [[ -z "$GITHUB_TOKEN" ]]; then
-    echo "❌ GITHUB_TOKEN is missing! Check your .env file."
+    echo "❌ GITHUB_TOKEN is missing! Check your .env file ."
     exit 1
 fi
 
