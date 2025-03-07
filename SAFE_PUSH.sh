@@ -11,13 +11,13 @@ fi
 # Define variables
 GITHUB_REPO="M-Umar-949/MLOPS-CICD"
 GITHUB_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-WORKFLOW_NAME="Flake8 Linting on dev push"
+WORKFLOW_NAME="flake8.yml"
 MAX_RETRIES=20
 SLEEP_INTERVAL=10
 
 # Ensure GITHUB_TOKEN is set
 if [[ -z "$GITHUB_TOKEN" ]]; then
-    echo "❌ GITHUB_TOKEN is missing! Check your .env file ."
+    echo "❌ GITHUB_TOKEN is missing! Check your .env file."
     exit 1
 fi
 
