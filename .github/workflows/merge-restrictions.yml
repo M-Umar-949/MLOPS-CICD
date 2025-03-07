@@ -3,9 +3,16 @@ name: Restrict Merge to Admin Only
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
+    branches:
+      - test
+      - main
+
+
+permissions:
+  pull-requests: write
+  issues: write
 
 jobs:
-  
   check-pr-author:
     runs-on: ubuntu-latest
     steps:
@@ -16,9 +23,9 @@ jobs:
           ADMIN_USER="your-github-username" # Replace with your GitHub username
 
           if [[ "$PR_AUTHOR" == "$ADMIN_USER" ]]; then
-            echo "::set-output name=allow_merge::true"
+            echo "allow_merge=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=allow_merge::false"
+            echo "allow_merge=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Block merge for collaborators
@@ -32,7 +39,9 @@ jobs:
               pull_number: context.issue.number,
             });
 
-            if (pr.user.login !== 'your-github-username') { // Replace with your GitHub username
+            const ADMIN_USER = "your-github-username"; // Replace with your GitHub username
+
+            if (pr.user.login !== ADMIN_USER) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
