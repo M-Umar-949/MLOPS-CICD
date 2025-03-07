@@ -27,6 +27,7 @@ pipeline {
                     if (sourceBranch != 'test' || targetBranch != 'main') {
                         currentBuild.result = 'ABORTED'
                         error("Pipeline aborted: Only merges from 'test' to 'main' are allowed.")
+                        
                     }
                 }
             }
