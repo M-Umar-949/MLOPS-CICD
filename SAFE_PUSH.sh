@@ -11,7 +11,7 @@ fi
 # Define variables
 GITHUB_REPO="M-Umar-949/MLOPS-CICD"
 GITHUB_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-WORKFLOW_NAME="flake8.yml"
+WORKFLOW_NAME="Flake8 Linting on dev push"
 MAX_RETRIES=20
 SLEEP_INTERVAL=10
 
