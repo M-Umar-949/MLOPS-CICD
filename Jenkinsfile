@@ -183,7 +183,8 @@ pipeline {
                 to: 'umarrajput930@gmail.com'
             )
         }
-        failure {
+        failure 
+        {
             echo '❌ Pipeline failed. Check the logs for details.'
             emailext (
                 subject: "❌ Pipeline Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
