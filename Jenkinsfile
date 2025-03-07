@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        // Define your Docker Hub repository (username/repo-name)
+        // Define the Docker Hub repository (username/repo-name)
         DOCKER_REPO = 'umar949/mlops'
         // Generate a tag based on the commit hash or default to 'latest'
         DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
@@ -11,20 +11,28 @@ pipeline {
     }
         
     triggers {
-        githubPush() // GitHub webhook trigger
-    }
+
+        pullRequest(
+            events: ['opened', 'synchronize', 'reopened', 'closed'],
+            branches: ['main']
+         )
+         }
     
     stages {
-        stage('Verify Branch') {
+        stage('Verify Merge to Main') {
             steps {
                 script {
-                    def branch = env.GIT_BRANCH ?: env.BRANCH_NAME
-                    echo "Current branch: ${branch}"
-                    
-                    // Only run on dev branch
-                    if (!(branch == 'origin/dev' || branch == 'dev')) {
+                    // Get the current branch and the target branch of the pull request
+                    def currentBranch = env.GIT_BRANCH ?: env.BRANCH_NAME
+                    def targetBranch = env.CHANGE_TARGET ?: 'main' // Default to 'main' if CHANGE_TARGET is not set
+
+                    echo "Current branch: ${currentBranch}"
+                    echo "Target branch: ${targetBranch}"
+
+                    // Check if the target branch is 'main' and the source branch is 'test'
+                    if (!(targetBranch == 'main' && currentBranch == 'test')) {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: not a push to dev branch. Current branch: ${branch}")
+                        error("Pipeline aborted: not a merge from 'test' to 'main'. Current branch: ${currentBranch}, Target branch: ${targetBranch}")
                     }
                 }
             }
@@ -32,7 +40,7 @@ pipeline {
         
         stage('Checkout Code') {
             steps {
-                // Checkout the code from the repository
+                // Check out the code from the repository
                 checkout scm
             }
         }
@@ -40,9 +48,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image
+                    // Build the Docker image using the Dockerfile in the project
                     sh """
-                    sudo /Applications/Docker.app/Contents/Resources/bin/docker build -t ${DOCKER_REPO}:${DOCKER_TAG} .
+                    sudo ${DOCKER_PATH} build -t ${DOCKER_REPO}:${DOCKER_TAG} .
                     """
                 }
             }
@@ -51,7 +59,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Push image with commit hash tag and latest tag
+                    // Push the Docker image with the commit hash tag and latest tag
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
                         ${DOCKER_PATH} login -u "$DOCKER_USERNAME" --password-stdin <<< "$DOCKER_PASSWORD"
@@ -67,10 +75,10 @@ pipeline {
         stage('Cleanup') {
             steps {
                 script {
-                    // Remove local images to save disk space
+                    // Remove local Docker images to save disk space
                     sh """
-                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
-                    sudo /Applications/Docker.app/Contents/Resources/bin/docker rmi ${DOCKER_REPO}:latest || true
+                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:${DOCKER_TAG} || true
+                    sudo ${DOCKER_PATH} rmi ${DOCKER_REPO}:latest || true
                     """
                 }
             }
@@ -100,9 +108,8 @@ pipeline {
                 to: 'umarrajput930@gmail.com'
             )
         }
-        
         always {
-            // Clean up workspace
+            // Clean up the workspace
             cleanWs()
         }
     }
