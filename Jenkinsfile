@@ -8,6 +8,7 @@ pipeline {
         // Define the full path to Docker executable
         DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
         PATH = "/Applications/Docker.app/Contents/Resources/bin:${PATH}"
+        
     }
     
     triggers {
