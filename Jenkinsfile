@@ -1,43 +1,41 @@
 pipeline {
     agent any
-
+    
     environment {
         DOCKER_REPO = 'umar949/mlops'
         DOCKER_TAG = "${env.GIT_COMMIT?.take(7) ?: 'latest'}"
         DOCKER_PATH = '/Applications/Docker.app/Contents/Resources/bin/docker'
         PATH = "/Applications/Docker.app/Contents/Resources/bin:${PATH}"
     }
-
+    
+    triggers {
+        // This will check the repository for changes every minute
+        pollSCM('* * * * *')
+    }
+    
     stages {
-        stage('Verify Merge to Main') {
-            when {
-                allOf {
-                    branch 'main'
-                    changeset "**"  // Ensures pipeline triggers on changes
-                }
-            }
+        stage('Validate Branch') {
             steps {
                 script {
-                    def sourceBranch = env.CHANGE_BRANCH ?: env.GIT_BRANCH
-                    def targetBranch = env.CHANGE_TARGET ?: 'main'
-
-                    echo "Source Branch: ${sourceBranch}"
-                    echo "Target Branch: ${targetBranch}"
-
-                    if (sourceBranch != 'test' || targetBranch != 'main') {
+                    echo "Current branch: ${env.BRANCH_NAME}"
+                    
+                    // Only proceed if we're on main branch
+                    if (env.BRANCH_NAME != 'main') {
                         currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted: Only merges from 'test' to 'main' are allowed.")
+                        error("This pipeline only runs on the main branch")
                     }
+                    
+                    // Optional: You can add additional validation here if needed
                 }
             }
         }
-
+        
         stage('Checkout Code') {
             steps {
                 checkout scm
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
@@ -47,7 +45,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Push to Docker Hub') {
             steps {
                 script {
@@ -62,7 +60,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Cleanup') {
             steps {
                 script {
@@ -74,7 +72,7 @@ pipeline {
             }
         }
     }
-
+    
     post {
         success {
             echo 'Docker image successfully built and pushed to Docker Hub!'
@@ -88,7 +86,7 @@ pipeline {
             )
         }
         failure {
-            echo 'Docker build or push failed  :('
+            echo 'Docker build or push failed :('
             emailext (
                 subject: "Pipeline Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
                 body: """
