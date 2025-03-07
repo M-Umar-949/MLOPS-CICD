@@ -197,7 +197,8 @@ pipeline {
             )
 
         }
-        always {
+        always 
+        {
             // Always clean up workspace regardless of success/failure
             cleanWs()
             echo "Workspace cleaned"
