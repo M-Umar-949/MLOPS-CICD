@@ -50,7 +50,7 @@ do
         git push
         exit 0
     elif [[ "$status" == "failure" || "$status" == "cancelled" ]]; then
-        echo "❌ Flake8 failed! Push aborted."
+        echo "❌ Flake8 failed! Push aborted. "
         exit 1
     fi
 
