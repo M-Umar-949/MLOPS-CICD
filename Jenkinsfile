@@ -61,7 +61,9 @@ pipeline {
                     if (!sourceBranch.contains('test')) {
                         // It's a merge, but not from test branch
                         currentBuild.result = 'ABORTED'
+
                         error("Pipeline aborted: This is a merge to main, but not from the test branch")
+
                     }
                     
                     echo "✅ Verified: This is a merge from test branch to main branch - proceeding with build"
