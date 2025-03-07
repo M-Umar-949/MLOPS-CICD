@@ -1,14 +1,14 @@
-name: Flake8 Linting
+name: Flake8 Linting on dev push
 
 on:
   push:
     branches:
       - dev
-  pull_request:
-    branches:
-      - dev
-      - main
-      - test
+  # pull_request:
+  #   branches:
+  #     - dev
+  #     - main
+  #     - test
 
 jobs:
   lint:
