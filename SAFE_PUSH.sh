@@ -35,29 +35,13 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Get the workflow run ID
-echo "⏳ Waiting for GitHub Actions workflow to start..."
-sleep 5 # Wait for the workflow to start
-
-run_id=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$GITHUB_REPO/actions/runs?branch=$GITHUB_BRANCH&event=workflow_dispatch" | \
-    jq -r '.workflow_runs[0].id')
-
-if [[ -z "$run_id" ]]; then
-    echo "❌ Failed to retrieve workflow run ID."
-    exit 1
-fi
-
-echo "🔍 Workflow Run ID: $run_id"
-
 # Poll for job status
 echo "⏳ Waiting for GitHub Actions job to complete..."
 for ((i=1; i<=MAX_RETRIES; i++))
 do
     status=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
-        "https://api.github.com/repos/$GITHUB_REPO/actions/runs/$run_id" | jq -r '.conclusion')
+        https://api.github.com/repos/$GITHUB_REPO/actions/runs | jq -r '.workflow_runs[0].conclusion')
 
     echo "🔍 Job Status: $status"
 
@@ -66,7 +50,7 @@ do
         git push
         exit 0
     elif [[ "$status" == "failure" || "$status" == "cancelled" ]]; then
-        echo "❌ Flake8 failed! Push aborted."
+        echo "❌ Flake8 failed! Push aborted. "
         exit 1
     fi
 
