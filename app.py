@@ -39,7 +39,7 @@ def predict():
             "index.html", prediction=flower_name
         )  # Show result in UI
     except Exception as e:
-        return render_template("index.html", error=str(e))  
+        return render_template("index.html", error=str(e))  # Display error in UI
 
 
 if __name__ == "__main__":
