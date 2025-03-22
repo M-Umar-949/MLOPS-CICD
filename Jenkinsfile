@@ -183,7 +183,8 @@ pipeline {
                 to: 'umarrajput930@gmail.com'
             )
         }
-        failure {
+        failure 
+        {
             echo '❌ Pipeline failed. Check the logs for details.'
             emailext (
                 subject: "❌ Pipeline Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
@@ -196,7 +197,8 @@ pipeline {
             )
 
         }
-        always {
+        always 
+        {
             // Always clean up workspace regardless of success/failure
             cleanWs()
             echo "Workspace cleaned"
