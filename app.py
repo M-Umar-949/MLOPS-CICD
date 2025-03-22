@@ -44,7 +44,7 @@ def predict():
 
 if __name__ == "__main__":
     print("=================================================")
-    print("Starting Flask application...")
+    print("Starting Flask application....")
     print("Access the application at http://localhost:8000")
     print("=================================================")
 
